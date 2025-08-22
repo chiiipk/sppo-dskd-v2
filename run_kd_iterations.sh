@@ -53,7 +53,7 @@ for i in $(seq 1 $ITERATION_COUNT); do
         --out_path "$DATA_OUTPUT_DIR" \
         --prompts "$PROMPT_FILE" \
         --teacher_model "$TEACHER_MODEL" \
-        --student_model "$MODEL_TO_USE" \    # 🔥 thêm student model
+        --student_model "$MODEL_TO_USE" \    
         --pairs $NUM_PAIRS \
         --frac_len $FRAC_LEN \
         --num_gpus $NUM_GPUS
