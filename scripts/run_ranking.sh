@@ -5,25 +5,30 @@ set -e
 OUTPUT_DIR=""
 PROMPTS_FILE=""
 TEACHER_MODEL=""
+STUDENT_MODEL=""
 PAIRS=5
 FRAC_LEN=0
 NUM_GPUS=8
 
-# --- CORRECTED ARGUMENT PARSING LOOP ---
+# --- ARGUMENT PARSING LOOP ---
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --out_path) OUTPUT_DIR="$2" ;;
         --prompts) PROMPTS_FILE="$2" ;;
         --teacher_model) TEACHER_MODEL="$2" ;;
+        --student_model) STUDENT_MODEL="$2" ;;   # student model
         --pairs) PAIRS="$2" ;;
         --frac_len) FRAC_LEN="$2" ;;
         --num_gpus) NUM_GPUS="$2" ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
-    shift 2 # Shift by 2 to consume both the flag and its value
+    shift 2
 done
-# --- END OF CORRECTION ---
 
+if [ -z "$STUDENT_MODEL" ]; then
+    echo "Error: Please provide --student_model"
+    exit 1
+fi
 
 # --- RUN `rank.py` IN PARALLEL ---
 echo "Starting parallel ranking on ${NUM_GPUS} GPUs..."
@@ -33,7 +38,7 @@ data_frac=0
 for gpu_id in "${AVAILABLE_GPUS[@]}"; do
     echo "Launching ranking process for GPU ${gpu_id} (data_frac=${data_frac})..."
     CUDA_VISIBLE_DEVICES=$gpu_id python3 scripts/rank.py \
-        --model "gpt2" \
+        --model "$STUDENT_MODEL" \                    
         --output_dir "$OUTPUT_DIR" \
         --prompts "$PROMPTS_FILE" \
         --pairs "$PAIRS" \
@@ -47,6 +52,5 @@ for gpu_id in "${AVAILABLE_GPUS[@]}"; do
     ((data_frac++))
 done
 
-wait # Wait for all background ranking processes to complete
+wait
 echo "All ranking processes have finished."
-
